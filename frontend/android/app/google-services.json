@@ -1,0 +1,76 @@
+{
+  "project_info": {
+    "project_number": "314791280440",
+    "project_id": "personal-expense-tracker-e03ec",
+    "storage_bucket": "personal-expense-tracker-e03ec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:314791280440:android:8011640bf818ffb91c0bcd",
+        "android_client_info": {
+          "package_name": "com.example.personalexpensetracker.personal_expense_tracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "314791280440-umuq4v06vtk09dlm0ge4k0tgnfac4i01.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcBuJUyZNjWmd8oQ6Az8Pc85uX3FeWJqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "314791280440-umuq4v06vtk09dlm0ge4k0tgnfac4i01.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:314791280440:android:849f90fe3457c2561c0bcd",
+        "android_client_info": {
+          "package_name": "seyha.com.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "314791280440-3kdo2n7cimfmpb3dkosnl7992o4qbsmt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "seyha.com.app",
+            "certificate_hash": "cf5eee69a78a9e154c5f7bb019827c9fb9dc1c02"
+          }
+        },
+        {
+          "client_id": "314791280440-umuq4v06vtk09dlm0ge4k0tgnfac4i01.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcBuJUyZNjWmd8oQ6Az8Pc85uX3FeWJqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "314791280440-umuq4v06vtk09dlm0ge4k0tgnfac4i01.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,722 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+
+class AppTranslations extends Translations {
+  @override
+  Map<String, Map<String, String>> get keys => {
+        // --- English (United States) ---
+        'en_US': enUS,
+        'en': enUS,
+
+        // --- Khmer (Cambodia) ---
+        'km_KH': kmKH,
+        'km': kmKH,
+
+        // --- Chinese (China) ---
+        'zh_CN': zhCN,
+        'zh': zhCN,
+      };
+
+  static const Map<String, String> enUS = {
+    // Navigation
+    'nav_home': 'Home',
+    'nav_transactions': 'Transactions',
+    'nav_add': 'Add',
+    'nav_analytics': 'Analytics',
+    'nav_profile': 'Profile',
+
+    // Dashboard
+    'hello': 'Hello',
+    'welcome_back': 'Welcome back',
+    'total_balance': 'Total Balance',
+    'income': 'Income',
+    'expenses': 'Expenses',
+    'add_income': 'Add Income',
+    'add_expense': 'Add Expense',
+    'quick_action_income': 'Income',
+    'quick_action_expense': 'Expense',
+    'quick_action_analytics': 'Analytics',
+    'quick_action_budget': 'Budget',
+    'today': 'Today',
+    'yesterday': 'Yesterday',
+    'hide_balance': 'Hide Balance',
+    'show_balance': 'Show Balance',
+    'recent_transactions': 'Recent Transactions',
+    'view_all': 'View All',
+    'notifications': 'Notifications',
+    'notifications_empty': 'No new notifications',
+    'mark_all_read': 'Mark all as read',
+    'notification_budget_title': 'Budget Status: Safe',
+    'notification_budget_body': 'Your spending is within safe limits for this month.',
+    'notification_currency_title': 'Multi-Currency Ready',
+    'notification_currency_body': 'You can switch between USD (\$) and KHR (៛) on any screen.',
+    'notification_security_title': 'Account Security',
+    'notification_security_body': 'Your financial transactions are encrypted and backed up.',
+    'monthly_budget': 'Monthly Budget',
+    'no_transactions_yet': 'No transactions yet',
+    'quick_add_hint': 'Tap Quick Add above to record your first income or expense',
+
+    // Financial Analytics
+    'financial_analytics': 'Financial Analytics',
+    'net_cash_flow': 'NET CASH FLOW',
+    'cash_in': 'Cash In',
+    'cash_out': 'Cash Out',
+    'saved': 'saved',
+    'deficit': 'deficit',
+    'cashflow_graph_12m': '12-Month Cashflow Graph',
+    'tap_inspect_month': 'Tap any month column to inspect prices',
+    'in_legend': 'In',
+    'out_legend': 'Out',
+    'net_label': 'Net',
+    'all_12m': 'All 12M',
+    'whole_year': 'Whole Year',
+    'category_breakdown': 'Category Breakdown',
+    'no_history_records': 'No historical monthly records',
+    'avg_per_day': 'Avg',
+    'transactions_count': 'transactions',
+    'no_records_for_year': 'No transactions recorded for this year yet. Add an income or expense to see bars grow!',
+    'add_txn': 'Add Txn',
+    'try_again': 'Try Again',
+
+    // Months Short
+    'month_jan': 'Jan',
+    'month_feb': 'Feb',
+    'month_mar': 'Mar',
+    'month_apr': 'Apr',
+    'month_may': 'May',
+    'month_jun': 'Jun',
+    'month_jul': 'Jul',
+    'month_aug': 'Aug',
+    'month_sep': 'Sep',
+    'month_oct': 'Oct',
+    'month_nov': 'Nov',
+    'month_dec': 'Dec',
+
+    // Months Full
+    'month_full_jan': 'January',
+    'month_full_feb': 'February',
+    'month_full_mar': 'March',
+    'month_full_apr': 'April',
+    'month_full_may': 'May',
+    'month_full_jun': 'June',
+    'month_full_jul': 'July',
+    'month_full_aug': 'August',
+    'month_full_sep': 'September',
+    'month_full_oct': 'October',
+    'month_full_nov': 'November',
+    'month_full_dec': 'December',
+
+    // Transactions Screen
+    'transactions': 'Transactions',
+    'search_description': 'Search description...',
+    'all_types': 'All Types',
+    'all_currencies': 'All Currencies',
+    'category': 'Category',
+    'no_transactions_found': 'No Transactions Found',
+    'no_transactions_desc': 'Start tracking your spending by adding income or expense records.',
+    'add_transaction': 'Add Transaction',
+    'edit_transaction': 'Edit Transaction',
+    'transaction_details': 'Transaction Details',
+    'delete_transaction': 'Delete Transaction',
+    'confirm_delete': 'Are you sure you want to delete this transaction?',
+    'delete': 'Delete',
+    'cancel': 'Cancel',
+    'confirm': 'Confirm',
+    'save': 'Save',
+    'sort_by': 'Sort by Date / Amount',
+    'filter_date_range': 'Filter by Date Range',
+
+    // Add / Edit Transaction Form
+    'expense': 'Expense',
+    'amount': 'AMOUNT',
+    'description': 'Description',
+    'description_hint': 'e.g. Grocery shopping, Freelance payment',
+    'date_time': 'Date & Time',
+    'payment_method': 'Payment Method',
+    'note_optional': 'Note (Optional)',
+    'note_hint': 'Add additional details or reference numbers...',
+    'record_expense': 'Record Expense',
+    'record_income': 'Record Income',
+    'update_transaction': 'Update Transaction',
+    'enter_amount': 'Enter an amount',
+    'enter_valid_amount': 'Enter a valid amount',
+    'enter_description': 'Please enter a description',
+    'missing_category': 'Missing Category',
+    'select_category_msg': 'Please select a category for this transaction.',
+
+    // Payment Methods
+    'payment_cash': 'Cash',
+    'payment_credit_card': 'Credit Card',
+    'payment_debit_card': 'Debit Card',
+    'payment_bank_transfer': 'Bank Transfer',
+    'payment_mobile_payment': 'Mobile Payment',
+    'payment_other': 'Other',
+
+    // Profile & Settings
+    'profile_settings': 'Profile & Settings',
+    'preferences': 'PREFERENCES',
+    'default_currency': 'Default Currency',
+    'currency_usd_label': 'US Dollar (\$)',
+    'currency_khr_label': 'Cambodian Riel (៛)',
+    'language': 'Language',
+    'select_language': 'Select Language',
+    'appearance': 'Appearance',
+    'theme_dark': 'Dark Mode',
+    'theme_light': 'Light Mode',
+    'theme_system': 'System Default',
+    'budget_alerts': 'Budget Alerts',
+    'budget_alerts_sub': 'Notify when spending nears 80%',
+    'security_account': 'SECURITY & ACCOUNT',
+    'change_password': 'Change Password',
+    'update_security_creds': 'Update account security credentials',
+    'email_status': 'Email Status',
+    'verified_account': 'Verified account',
+    'unverified_account': 'Unverified account',
+    'sign_out': 'Sign Out',
+    'confirm_sign_out': 'Are you sure you want to sign out?',
+    'edit_profile': 'Edit Profile',
+    'edit_profile_name': 'Edit Profile Name',
+    'change_profile_photo': 'Change Profile Photo',
+    'choose_avatar': 'Choose Avatar',
+    'custom_image_url': 'Custom Image URL',
+    'image_url_hint': 'Paste image URL (https://...)',
+    'remove_photo': 'Remove Photo',
+    'save_changes': 'Save Changes',
+    'profile_updated_successfully': 'Profile updated successfully',
+    'upload_photo': 'Upload from Phone',
+    'take_photo': 'Take Photo',
+    'choose_from_gallery': 'Choose from Gallery',
+    'uploading_photo': 'Uploading photo...',
+    'photo_upload_success': 'Profile photo updated successfully',
+    'photo_upload_failed': 'Failed to upload photo. Please try again.',
+    'name': 'Name',
+    'language_updated': 'Language changed to English',
+
+    // Auth
+    'welcome_back_title': 'Welcome Back',
+    'sign_in': 'Sign In',
+    'sign_up': 'Sign Up',
+    'email_address': 'Email Address',
+    'password': 'Password',
+    'forgot_password': 'Forgot Password?',
+    'dont_have_account': "Don't have an account?",
+    'already_have_account': 'Already have an account?',
+    'create_account': 'Create Account',
+
+    // Onboarding
+    'skip': 'Skip',
+    'next': 'Next',
+    'get_started': 'Get Started',
+    'onboarding_title_1': 'Take Control of Your Money',
+    'onboarding_sub_1': 'Track your daily income and expenses effortlessly in one secure place.',
+    'onboarding_badge_1': 'Fast & Easy',
+    'onboarding_title_2': 'Smart Categorization & Insights',
+    'onboarding_sub_2': 'Organize spending into custom categories and view intuitive monthly charts to see where your money goes.',
+    'onboarding_badge_2': 'Visual Analytics',
+    'onboarding_title_3': 'Start Your Financial Journey Today',
+    'onboarding_sub_3': 'Set your budgets, stay on track, and achieve your financial goals with ease.',
+    'onboarding_badge_3': 'USD & KHR Dual Control',
+    'onboarding_mock_salary': 'Salary Income',
+    'onboarding_mock_food': 'Food & Dining',
+    'onboarding_mock_coffee': 'Coffee & Cafe',
+    'onboarding_mock_saved_rate': '+91% Net Saved',
+    'onboarding_mock_budget_status': 'Safe (Within Budget)',
+    'view_onboarding': 'App Walkthrough Guide',
+    'view_onboarding_sub': 'Review the 3-step feature introduction',
+  };
+
+  static const Map<String, String> kmKH = {
+    // Navigation
+    'nav_home': 'ផ្ទាំងដើម',
+    'nav_transactions': 'ប្រតិបត្តិការ',
+    'nav_add': 'បន្ថែម',
+    'nav_analytics': 'ការវិភាគ',
+    'nav_profile': 'គណនី',
+
+    // Dashboard
+    'hello': 'សួស្តី',
+    'welcome_back': 'សូមស្វាគមន៍ត្រឡប់មកវិញ',
+    'total_balance': 'សមតុល្យសរុប',
+    'income': 'ចំណូល',
+    'expenses': 'ចំណាយ',
+    'add_income': 'បន្ថែមចំណូល',
+    'add_expense': 'បន្ថែមចំណាយ',
+    'quick_action_income': 'ចំណូល',
+    'quick_action_expense': 'ចំណាយ',
+    'quick_action_analytics': 'វិភាគ',
+    'quick_action_budget': 'ថវិកា',
+    'today': 'ថ្ងៃនេះ',
+    'yesterday': 'ម្សិលមិញ',
+    'hide_balance': 'លាក់សមតុល្យ',
+    'show_balance': 'បង្ហាញសមតុល្យ',
+    'recent_transactions': 'ប្រតិបត្តិការថ្មីៗ',
+    'view_all': 'មើលទាំងអស់',
+    'notifications': 'ការជូនដំណឹង',
+    'notifications_empty': 'គ្មានការជូនដំណឹងថ្មីទេ',
+    'mark_all_read': 'សម្គាល់ថាបានអានទាំងអស់',
+    'notification_budget_title': 'ស្ថានភាពថវិកា៖ សុវត្ថិភាព',
+    'notification_budget_body': 'ការចំណាយរបស់អ្នកស្ថិតក្នុងកម្រិតសុវត្ថិភាពសម្រាប់ខែនេះ។',
+    'notification_currency_title': 'រូបិយប័ណ្ណពីរ៖ រួចរាល់',
+    'notification_currency_body': 'អ្នកអាចផ្លាស់ប្តូររវាង \$ និង ៛ នៅលើគ្រប់ផ្ទាំងបាន។',
+    'notification_security_title': 'សុវត្ថិភាពគណនី',
+    'notification_security_body': 'ប្រតិបត្តិការហិរញ្ញវត្ថុរបស់អ្នកត្រូវបានការពារ និងបម្រុងទុក។',
+    'monthly_budget': 'ថវិកាប្រចាំខែ',
+    'no_transactions_yet': 'មិនទាន់មានប្រតិបត្តិការនៅឡើយទេ',
+    'quick_add_hint': 'ចុចបន្ថែមរហ័សខាងលើដើម្បីកត់ត្រាចំណូល ឬចំណាយដំបូងរបស់អ្នក',
+
+    // Financial Analytics
+    'financial_analytics': 'ការវិភាគហិរញ្ញវត្ថុ',
+    'net_cash_flow': 'លំហូរសាច់ប្រាក់សុទ្ធ',
+    'cash_in': 'ចំណូល',
+    'cash_out': 'ចំណាយ',
+    'saved': 'សន្សំបាន',
+    'deficit': 'ខាត',
+    'cashflow_graph_12m': 'ក្រាបលំហូរសាច់ប្រាក់ ១២ ខែ',
+    'tap_inspect_month': 'ចុចលើជួរឈរខែណាមួយដើម្បីពិនិត្យមើលតម្លៃ',
+    'in_legend': 'ចូល',
+    'out_legend': 'ចេញ',
+    'net_label': 'សុទ្ធ',
+    'all_12m': 'ទាំង ១២ ខែ',
+    'whole_year': 'ពេញមួយឆ្នាំ',
+    'category_breakdown': 'ការបែងចែកតាមប្រភេទ',
+    'no_history_records': 'មិនមានកំណត់ត្រាប្រចាំខែពីមុនទេ',
+    'avg_per_day': 'ជាមធ្យម',
+    'transactions_count': 'ប្រតិបត្តិការ',
+    'no_records_for_year': 'មិនទាន់មានប្រតិបត្តិការសម្រាប់ឆ្នាំនេះទេ។ បន្ថែមចំណូល ឬចំណាយដើម្បីមើលក្រាប!',
+    'add_txn': 'បន្ថែម',
+    'try_again': 'ព្យាយាមម្តងទៀត',
+
+    // Months Short
+    'month_jan': 'មករា',
+    'month_feb': 'កុម្ភៈ',
+    'month_mar': 'មីនា',
+    'month_apr': 'មេសា',
+    'month_may': 'ឧសភា',
+    'month_jun': 'មិថុនា',
+    'month_jul': 'កក្កដា',
+    'month_aug': 'សីហា',
+    'month_sep': 'កញ្ញា',
+    'month_oct': 'តុលា',
+    'month_nov': 'វិច្ឆិកា',
+    'month_dec': 'ធ្នូ',
+
+    // Months Full
+    'month_full_jan': 'មករា',
+    'month_full_feb': 'កុម្ភៈ',
+    'month_full_mar': 'មីនា',
+    'month_full_apr': 'មេសា',
+    'month_full_may': 'ឧសភា',
+    'month_full_jun': 'មិថុនា',
+    'month_full_jul': 'កក្កដា',
+    'month_full_aug': 'សីហា',
+    'month_full_sep': 'កញ្ញា',
+    'month_full_oct': 'តុលា',
+    'month_full_nov': 'វិច្ឆិកា',
+    'month_full_dec': 'ធ្នូ',
+
+    // Transactions Screen
+    'transactions': 'ប្រតិបត្តិការ',
+    'search_description': 'ស្វែងរកការពិពណ៌នា...',
+    'all_types': 'ប្រភេទទាំងអស់',
+    'all_currencies': 'រូបិយប័ណ្ណទាំងអស់',
+    'category': 'ប្រភេទ',
+    'no_transactions_found': 'រកមិនឃើញប្រតិបត្តិការទេ',
+    'no_transactions_desc': 'ចាប់ផ្តើមតាមដានការចំណាយរបស់អ្នកដោយបន្ថែមការកត់ត្រាចំណូល ឬចំណាយ។',
+    'add_transaction': 'បន្ថែមប្រតិបត្តិការ',
+    'edit_transaction': 'កែសម្រួលប្រតិបត្តិការ',
+    'transaction_details': 'ព័ត៌មានលម្អិតនៃប្រតិបត្តិការ',
+    'delete_transaction': 'លុបប្រតិបត្តិការ',
+    'confirm_delete': 'តើអ្នកប្រាកដជាចង់លុបប្រតិបត្តិការនេះទេ?',
+    'delete': 'លុប',
+    'cancel': 'បោះបង់',
+    'confirm': 'បញ្ជាក់',
+    'save': 'រក្សាទុក',
+    'sort_by': 'តម្រៀបតាមកាលបរិច្ឆេទ / ចំនួនទឹកប្រាក់',
+    'filter_date_range': 'ត្រងតាមចន្លោះកាលបរិច្ឆេទ',
+
+    // Add / Edit Transaction Form
+    'expense': 'ចំណាយ',
+    'amount': 'ចំនួនទឹកប្រាក់',
+    'description': 'ការពិពណ៌នា',
+    'description_hint': 'ឧទាហរណ៍៖ ទិញម្ហូប, ប្រាក់ខែ, បង់ថ្លៃបន្ទប់',
+    'date_time': 'កាលបរិច្ឆេទ និងពេលវេលា',
+    'payment_method': 'វិធីសាស្ត្រទូទាត់',
+    'note_optional': 'កំណត់ចំណាំ (ស្រេចចិត្ត)',
+    'note_hint': 'បន្ថែមព័ត៌មានលម្អិត ឬលេខយោង...',
+    'record_expense': 'កត់ត្រាចំណាយ',
+    'record_income': 'កត់ត្រាចំណូល',
+    'update_transaction': 'ធ្វើបច្ចុប្បន្នភាពប្រតិបត្តិការ',
+    'enter_amount': 'សូមបញ្ចូលចំនួនទឹកប្រាក់',
+    'enter_valid_amount': 'សូមបញ្ចូលចំនួនទឹកប្រាក់ត្រឹមត្រូវ',
+    'enter_description': 'សូមបញ្ចូលការពិពណ៌នា',
+    'missing_category': 'ខ្វះប្រភេទ',
+    'select_category_msg': 'សូមជ្រើសរើសប្រភេទសម្រាប់ប្រតិបត្តិការនេះ។',
+
+    // Payment Methods
+    'payment_cash': 'សាច់ប្រាក់សុទ្ធ',
+    'payment_credit_card': 'ប័ណ្ណឥណទាន',
+    'payment_debit_card': 'ប័ណ្ណឥណពន្ធ',
+    'payment_bank_transfer': 'ផ្ទេរប្រាក់ធនាគារ',
+    'payment_mobile_payment': 'ទូទាត់តាមទូរស័ព្ទ',
+    'payment_other': 'ផ្សេងៗ',
+
+    // Profile & Settings
+    'profile_settings': 'គណនី និងការកំណត់',
+    'preferences': 'ចំណូលចិត្ត',
+    'default_currency': 'រូបិយប័ណ្ណលំនាំដើម',
+    'currency_usd_label': 'ដុល្លារអាមេរិក (\$)',
+    'currency_khr_label': 'រៀលកម្ពុជា (៛)',
+    'language': 'ភាសា',
+    'select_language': 'ជ្រើសរើសភាសា',
+    'appearance': 'រូបរាង',
+    'theme_dark': 'ទម្រង់ងងឹត',
+    'theme_light': 'ទម្រង់ភ្លឺ',
+    'theme_system': 'តាមប្រព័ន្ធ',
+    'budget_alerts': 'ការជូនដំណឹងអំពីថវិកា',
+    'budget_alerts_sub': 'ជូនដំណឹងនៅពេលចំណាយជិតដល់ ៨០%',
+    'security_account': 'សុវត្ថិភាព និងគណនី',
+    'change_password': 'ផ្លាស់ប្តូរពាក្យសម្ងាត់',
+    'update_security_creds': 'ធ្វើបច្ចុប្បន្នភាពសុវត្ថិភាពគណនី',
+    'email_status': 'ស្ថានភាពអ៊ីមែល',
+    'verified_account': 'គណនីបានផ្ទៀងផ្ទាត់',
+    'unverified_account': 'គណនីមិនទាន់ផ្ទៀងផ្ទាត់',
+    'sign_out': 'ចាកចេញពីគណនី',
+    'confirm_sign_out': 'តើអ្នកប្រាកដជាចង់ចាកចេញពីគណនីមែនទេ?',
+    'edit_profile': 'កែសម្រួលគណនី',
+    'edit_profile_name': 'កែប្រែឈ្មោះ',
+    'change_profile_photo': 'ប្តូររូបថតគណនី',
+    'choose_avatar': 'ជ្រើសរើសរូបតំណាង',
+    'custom_image_url': 'តំណភ្ជាប់រូបភាពផ្ទាល់ខ្លួន',
+    'image_url_hint': 'បញ្ចូលតំណភ្ជាប់រូបភាព (https://...)',
+    'remove_photo': 'លុបរូបថតចេញ',
+    'save_changes': 'រក្សាទុកការកែប្រែ',
+    'profile_updated_successfully': 'បានធ្វើបច្ចុប្បន្នភាពគណនីដោយជោគជ័យ',
+    'upload_photo': 'បញ្ចូលរូបភាពពីទូរស័ព្ទ',
+    'take_photo': 'ថតរូបភាពថ្មី',
+    'choose_from_gallery': 'ជ្រើសរើសពីរូបថតក្នុងទូរស័ព្ទ',
+    'uploading_photo': 'កំពុងផ្ទុករូបភាព...',
+    'photo_upload_success': 'បានប្តូររូបថតគណនីដោយជោគជ័យ',
+    'photo_upload_failed': 'មិនអាចបញ្ចូលរូបភាពបានទេ។ សូមព្យាយាមម្តងទៀត។',
+    'name': 'ឈ្មោះ',
+    'language_updated': 'បានផ្លាស់ប្តូរភាសាទៅជា ភាសាខ្មែរ',
+
+    // Auth
+    'welcome_back_title': 'សូមស្វាគមន៍ត្រឡប់មកវិញ',
+    'sign_in': 'ចូលគណនី',
+    'sign_up': 'ចុះឈ្មោះ',
+    'email_address': 'អាសយដ្ឋានអ៊ីមែល',
+    'password': 'ពាក្យសម្ងាត់',
+    'forgot_password': 'ភ្លេចពាក្យសម្ងាត់?',
+    'dont_have_account': 'មិនទាន់មានគណនីមែនទេ?',
+    'already_have_account': 'មានគណនីរួចហើយមែនទេ?',
+    'create_account': 'បង្កើតគណនីថ្មី',
+
+    // Onboarding
+    'skip': 'រំលង',
+    'next': 'បន្ទាប់',
+    'get_started': 'ចាប់ផ្តើមប្រើប្រាស់',
+    'onboarding_title_1': 'គ្រប់គ្រងហិរញ្ញវត្ថុរបស់អ្នកដោយទំនុកចិត្ត',
+    'onboarding_sub_1': 'តាមដានចំណូល និងចំណាយប្រចាំថ្ងៃរបស់អ្នកបានយ៉ាងងាយស្រួលនៅក្នុងកន្លែងតែមួយដែលមានសុវត្ថិភាពខ្ពស់។',
+    'onboarding_badge_1': 'ងាយស្រួល និងរហ័ស',
+    'onboarding_title_2': 'ការចាត់ថ្នាក់ឆ្លាតវៃ និងការយល់ដឹងស៊ីជម្រៅ',
+    'onboarding_sub_2': 'រៀបចំការចំណាយទៅតាមប្រភេទផ្ទាល់ខ្លួន និងមើលឃើញក្រាបប្រចាំខែយ៉ាងច្បាស់លាស់ថាតើប្រាក់របស់អ្នកទៅណា។',
+    'onboarding_badge_2': 'ការវិភាគបែបទំនើប',
+    'onboarding_title_3': 'ចាប់ផ្តើមដំណើរហិរញ្ញវត្ថុរបស់អ្នកនៅថ្ងៃនេះ',
+    'onboarding_sub_3': 'កំណត់កញ្ចប់ថវិកា គ្រប់គ្រងគោលដៅ និងសម្រេចបាននូវផែនការហិរញ្ញវត្ថុរបស់អ្នកដោយងាយស្រួល។',
+    'onboarding_badge_3': 'ដាច់ដោយឡែក \$ និង ៛',
+    'onboarding_mock_salary': 'ប្រាក់ខែ',
+    'onboarding_mock_food': 'ម្ហូបអាហារ',
+    'onboarding_mock_coffee': 'កាហ្វេ',
+    'onboarding_mock_saved_rate': '+91% សន្សំបាន',
+    'onboarding_mock_budget_status': 'ស្ថិតក្នុងកម្រិតសុវត្ថិភាព',
+    'view_onboarding': 'ការណែនាំអំពីកម្មវិធី',
+    'view_onboarding_sub': 'មើលការណែនាំពីមុខងារសំខាន់ៗទាំង ៣ ឡើងវិញ',
+  };
+
+  static const Map<String, String> zhCN = {
+    // Navigation
+    'nav_home': '首页',
+    'nav_transactions': '明细',
+    'nav_add': '记账',
+    'nav_analytics': '图表',
+    'nav_profile': '我的',
+
+    // Dashboard
+    'hello': '你好',
+    'welcome_back': '欢迎回来',
+    'total_balance': '总资产',
+    'income': '收入',
+    'expenses': '支出',
+    'add_income': '记收入',
+    'add_expense': '记支出',
+    'quick_action_income': '收入',
+    'quick_action_expense': '支出',
+    'quick_action_analytics': '图表',
+    'quick_action_budget': '预算',
+    'today': '今天',
+    'yesterday': '昨天',
+    'hide_balance': '隐藏金额',
+    'show_balance': '显示金额',
+    'recent_transactions': '最近交易',
+    'view_all': '查看全部',
+    'notifications': '消息通知',
+    'notifications_empty': '暂无新通知',
+    'mark_all_read': '全部已读',
+    'notification_budget_title': '预算状态：健康',
+    'notification_budget_body': '本月支出处于安全健康水平。',
+    'notification_currency_title': '双币种核算就绪',
+    'notification_currency_body': '您可在任意界面自由切换美元（\$）与柬币（៛）。',
+    'notification_security_title': '账户安全',
+    'notification_security_body': '您的财务数据已加密并妥善备份。',
+    'monthly_budget': '本月预算',
+    'no_transactions_yet': '暂无交易记录',
+    'quick_add_hint': '点击上方快捷添加以记录您的第一笔收支',
+
+    // Financial Analytics
+    'financial_analytics': '财务分析',
+    'net_cash_flow': '净现金流',
+    'cash_in': '现金流入',
+    'cash_out': '现金流出',
+    'saved': '结余',
+    'deficit': '赤字',
+    'cashflow_graph_12m': '12个月现金流趋势图',
+    'tap_inspect_month': '点击月份柱状图查看明细',
+    'in_legend': '收入',
+    'out_legend': '支出',
+    'net_label': '净额',
+    'all_12m': '全年12个月',
+    'whole_year': '全年',
+    'category_breakdown': '分类支出统计',
+    'no_history_records': '暂无历史月度数据',
+    'avg_per_day': '日均',
+    'transactions_count': '笔交易',
+    'no_records_for_year': '今年暂无记录。记一笔收支即可生成柱状图！',
+    'add_txn': '记一笔',
+    'try_again': '重试',
+
+    // Months Short
+    'month_jan': '1月',
+    'month_feb': '2月',
+    'month_mar': '3月',
+    'month_apr': '4月',
+    'month_may': '5月',
+    'month_jun': '6月',
+    'month_jul': '7月',
+    'month_aug': '8月',
+    'month_sep': '9月',
+    'month_oct': '10月',
+    'month_nov': '11月',
+    'month_dec': '12月',
+
+    // Months Full
+    'month_full_jan': '一月',
+    'month_full_feb': '二月',
+    'month_full_mar': '三月',
+    'month_full_apr': '四月',
+    'month_full_may': '五月',
+    'month_full_jun': '六月',
+    'month_full_jul': '七月',
+    'month_full_aug': '八月',
+    'month_full_sep': '九月',
+    'month_full_oct': '十月',
+    'month_full_nov': '十一月',
+    'month_full_dec': '十二月',
+
+    // Transactions Screen
+    'transactions': '明细账单',
+    'search_description': '搜索账单描述...',
+    'all_types': '所有类型',
+    'all_currencies': '所有币种',
+    'category': '分类',
+    'no_transactions_found': '暂无匹配的交易',
+    'no_transactions_desc': '开始记账，轻松管理您的每一笔收支。',
+    'add_transaction': '记一笔',
+    'edit_transaction': '编辑交易',
+    'transaction_details': '交易详情',
+    'delete_transaction': '删除交易',
+    'confirm_delete': '确定要删除此笔交易吗？',
+    'delete': '删除',
+    'cancel': '取消',
+    'confirm': '确定',
+    'save': '保存',
+    'sort_by': '排序规则',
+    'filter_date_range': '按日期范围筛选',
+
+    // Add / Edit Transaction Form
+    'expense': '支出',
+    'amount': '金额',
+    'description': '描述',
+    'description_hint': '例如：超市采购、工资发放、餐饮消费',
+    'date_time': '日期与时间',
+    'payment_method': '支付方式',
+    'note_optional': '备注（选填）',
+    'note_hint': '添加更多明细或交易单号...',
+    'record_expense': '保存支出',
+    'record_income': '保存收入',
+    'update_transaction': '保存修改',
+    'enter_amount': '请输入金额',
+    'enter_valid_amount': '请输入有效金额',
+    'enter_description': '请输入描述内容',
+    'missing_category': '未选择分类',
+    'select_category_msg': '请为此笔交易选择分类。',
+
+    // Payment Methods
+    'payment_cash': '现金',
+    'payment_credit_card': '信用卡',
+    'payment_debit_card': '借记卡',
+    'payment_bank_transfer': '银行转账',
+    'payment_mobile_payment': '移动支付',
+    'payment_other': '其他',
+
+    // Profile & Settings
+    'profile_settings': '个人与设置',
+    'preferences': '偏好设置',
+    'default_currency': '默认币种',
+    'currency_usd_label': '美元 (\$)',
+    'currency_khr_label': '柬埔寨瑞尔 (៛)',
+    'language': '系统语言',
+    'select_language': '选择语言',
+    'appearance': '主题外观',
+    'theme_dark': '深色模式',
+    'theme_light': '浅色模式',
+    'theme_system': '跟随系统',
+    'budget_alerts': '预算预警提醒',
+    'budget_alerts_sub': '支出达80%时发送通知',
+    'security_account': '账户与安全',
+    'change_password': '修改密码',
+    'update_security_creds': '更新账户安全凭据',
+    'email_status': '邮箱状态',
+    'verified_account': '已验证',
+    'unverified_account': '未验证',
+    'sign_out': '退出登录',
+    'confirm_sign_out': '确定要退出当前账号吗？',
+    'edit_profile': '编辑资料',
+    'edit_profile_name': '修改昵称',
+    'change_profile_photo': '更换头像',
+    'choose_avatar': '选择头像',
+    'custom_image_url': '自定义图片链接',
+    'image_url_hint': '输入图片直链 (https://...)',
+    'remove_photo': '移除头像',
+    'save_changes': '保存修改',
+    'profile_updated_successfully': '个人资料已更新',
+    'upload_photo': '从手机上传照片',
+    'take_photo': '拍照',
+    'choose_from_gallery': '从相册选择',
+    'uploading_photo': '正在上传照片...',
+    'photo_upload_success': '头像上传成功',
+    'photo_upload_failed': '头像上传失败，请重试。',
+    'name': '姓名',
+    'language_updated': '语言已切换为 中文',
+
+    // Auth
+    'welcome_back_title': '欢迎回来',
+    'sign_in': '登录',
+    'sign_up': '注册',
+    'email_address': '电子邮箱',
+    'password': '密码',
+    'forgot_password': '忘记密码？',
+    'dont_have_account': '还没有账号？',
+    'already_have_account': '已有账号？',
+    'create_account': '创建新账号',
+
+    // Onboarding
+    'skip': '跳过',
+    'next': '下一步',
+    'get_started': '立即开启',
+    'onboarding_title_1': '掌控您的财富与收支',
+    'onboarding_sub_1': '在一个安全高效的应用中，轻松记录您的每日收入与支出。',
+    'onboarding_badge_1': '快捷省心',
+    'onboarding_title_2': '智能分类与图表洞察',
+    'onboarding_sub_2': '自定义消费分类管理，直观月度收支趋势图，清晰洞察每笔资金流向。',
+    'onboarding_badge_2': '可视化深度分析',
+    'onboarding_title_3': '即刻开启您的财务之旅',
+    'onboarding_sub_3': '设定每月预算限额，有效防范过度消费，轻松达成理财目标。',
+    'onboarding_badge_3': '美元与瑞尔独立管控',
+    'onboarding_mock_salary': '工资收入',
+    'onboarding_mock_food': '餐饮美食',
+    'onboarding_mock_coffee': '咖啡奶茶',
+    'onboarding_mock_saved_rate': '+91% 净结余',
+    'onboarding_mock_budget_status': '预算状态健康',
+    'view_onboarding': '功能介绍指南',
+    'view_onboarding_sub': '重新浏览3步核心功能引导',
+  };
+}
+
+class TranslationService {
+  static const String storageKey = 'app_language';
+
+  static const List<Map<String, String>> languages = [
+    {
+      'code': 'km',
+      'country': 'KH',
+      'name': 'ភាសាខ្មែរ',
+      'englishName': 'Khmer',
+      'flag': '🇰🇭',
+    },
+    {
+      'code': 'en',
+      'country': 'US',
+      'name': 'English',
+      'englishName': 'English',
+      'flag': '🇺🇸',
+    },
+    {
+      'code': 'zh',
+      'country': 'CN',
+      'name': '中文',
+      'englishName': 'Chinese',
+      'flag': '🇨🇳',
+    },
+  ];
+
+  /// Get currently active locale from local storage or fallback to English
+  static Locale get currentLocale {
+    final box = GetStorage();
+    final savedCode = box.read<String>(storageKey) ?? 'en';
+    return getLocaleFromCode(savedCode);
+  }
+
+  /// Get current language code string ('en', 'km', or 'zh')
+  static String get currentLanguageCode {
+    final box = GetStorage();
+    return box.read<String>(storageKey) ?? 'en';
+  }
+
+  static Locale getLocaleFromCode(String code) {
+    switch (code) {
+      case 'km':
+        return const Locale('km', 'KH');
+      case 'zh':
+        return const Locale('zh', 'CN');
+      case 'en':
+      default:
+        return const Locale('en', 'US');
+    }
+  }
+
+  static String getLanguageName(String code) {
+    final found = languages.firstWhere(
+      (l) => l['code'] == code,
+      orElse: () => languages[1], // default English
+    );
+    return '${found['flag']} ${found['name']}';
+  }
+
+  static String getLanguageFlag(String code) {
+    final found = languages.firstWhere(
+      (l) => l['code'] == code,
+      orElse: () => languages[1],
+    );
+    return found['flag'] ?? '🌐';
+  }
+
+  /// Change active language and persist to GetStorage
+  static Future<void> changeLocale(String langCode) async {
+    final locale = getLocaleFromCode(langCode);
+    final box = GetStorage();
+    await box.write(storageKey, langCode);
+    await Get.updateLocale(locale);
+  }
+}
+
