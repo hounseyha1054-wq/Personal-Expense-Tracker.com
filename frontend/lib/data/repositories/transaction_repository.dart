@@ -47,4 +47,18 @@ class TransactionRepository {
   Future<void> deleteTransaction(String id) async {
     await _apiService.deleteTransaction(id);
   }
+
+  Future<List<TransactionModel>> exportTransactions({
+    String? type,
+    String? currency,
+    String? startDate,
+    String? endDate,
+  }) async {
+    return await _apiService.exportTransactions(
+      type: type,
+      currency: currency,
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
 }

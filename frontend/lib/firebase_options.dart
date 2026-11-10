@@ -38,11 +38,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyA_REPLACE_WITH_YOUR_WEB_FIREBASE_API_KEY',
-    appId: '1:123456789012:web:abcdef1234567890',
-    messagingSenderId: '123456789012',
+    apiKey: 'AIzaSyBcBuJUyZNjWmd8oQ6Az8Pc85uX3FeWJqE',
+    appId: '1:314791280440:web:849f90fe3457c2561c0bcd',
+    messagingSenderId: '314791280440',
     projectId: 'personal-expense-tracker-e03ec',
     authDomain: 'personal-expense-tracker-e03ec.firebaseapp.com',
-    storageBucket: 'personal-expense-tracker-app.appspot.com',
+    storageBucket: 'personal-expense-tracker-e03ec.firebasestorage.app',
   );
 }

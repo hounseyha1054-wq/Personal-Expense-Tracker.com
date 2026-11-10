@@ -166,12 +166,32 @@ class TransactionController extends GetxController {
     }
   }
 
-  Future<void> updateTransaction(String id, Map<String, dynamic> data) async {
+  Future<TransactionModel?> getTransactionById(String id) async {
+    final existing = transactions.firstWhereOrNull((t) => t.id == id);
+    if (existing != null) return existing;
+
+    try {
+      final fetched = await _transactionRepo.getTransaction(id);
+      return fetched;
+    } catch (e) {
+      debugPrint('[TransactionController] Error fetching transaction $id: $e');
+      return null;
+    }
+  }
+
+  Future<TransactionModel?> updateTransaction(String id, Map<String, dynamic> data) async {
     try {
       isSubmitting.value = true;
-      await _transactionRepo.updateTransaction(id, data);
-      Get.back();
+      final updated = await _transactionRepo.updateTransaction(id, data);
+      
+      final index = transactions.indexWhere((t) => t.id == id);
+      if (index != -1) {
+        transactions[index] = updated;
+      }
+
+      Get.back(result: updated);
       await fetchTransactions(refresh: true);
+
       if (Get.isRegistered<DashboardController>()) {
         Get.find<DashboardController>().refreshDashboard();
       }
@@ -184,33 +204,47 @@ class TransactionController extends GetxController {
         backgroundColor: Colors.green.shade600,
         colorText: Colors.white,
       );
+      return updated;
     } catch (e) {
       Get.snackbar('Error', 'Failed to update transaction: $e');
+      return null;
     } finally {
       isSubmitting.value = false;
     }
   }
 
-  Future<void> deleteTransaction(String id) async {
+  Future<bool> deleteTransaction(String id, {bool closeScreen = false}) async {
     try {
       isSubmitting.value = true;
       await _transactionRepo.deleteTransaction(id);
       transactions.removeWhere((t) => t.id == id);
-      Get.back(); // close dialog or details
+
+      if (closeScreen) {
+        Get.back();
+      }
+
       if (Get.isRegistered<DashboardController>()) {
         Get.find<DashboardController>().refreshDashboard();
       }
       if (Get.isRegistered<AnalyticsController>()) {
         Get.find<AnalyticsController>().loadData();
       }
+
       Get.snackbar(
-        'Deleted',
-        'Transaction deleted successfully',
-        backgroundColor: Colors.black87,
+        'delete'.tr,
+        'transaction_deleted_success'.tr,
+        backgroundColor: const Color(0xFF1E293B),
         colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        margin: const EdgeInsets.all(12),
+        borderRadius: 12,
+        duration: const Duration(seconds: 3),
+        icon: const Icon(Icons.delete_forever_rounded, color: Colors.white),
       );
+      return true;
     } catch (e) {
       Get.snackbar('Error', 'Failed to delete transaction: $e');
+      return false;
     } finally {
       isSubmitting.value = false;
     }

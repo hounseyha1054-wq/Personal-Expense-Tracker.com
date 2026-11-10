@@ -4,6 +4,7 @@ import 'package:get_storage/get_storage.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/localization/translation_service.dart';
+import '../../../core/utils/responsive_layout.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({super.key});
@@ -109,8 +110,10 @@ class _OnboardingViewState extends State<OnboardingView> {
       backgroundColor:
           isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: Column(
-          children: [
+        child: ResponsiveContainer(
+          maxWidth: 720,
+          child: Column(
+            children: [
             // Top App Bar Controls (Language Switcher & Skip)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -323,6 +326,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

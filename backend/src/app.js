@@ -20,18 +20,46 @@ app.use(
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // CORS Configuration
-const allowedOrigins = process.env.CORS_ORIGIN
+const configuredOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-  : '*';
+  : ['*'];
 
 app.use(
   cors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+
+      // If configuredOrigins is wildcard '*' or explicitly contains the origin, reflect it back
+      if (configuredOrigins.includes('*') || configuredOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Automatically allow all localhost and 127.0.0.1 development ports (Flutter Web)
+      if (
+        /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
+        /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(null, true);
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+    ],
     credentials: true,
+    optionsSuccessStatus: 200,
   })
 );
+
+// Pre-flight support across all routes
+app.options('*', cors());
 
 // Global Rate Limiting
 const limiter = rateLimit({

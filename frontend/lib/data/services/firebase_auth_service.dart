@@ -1,13 +1,26 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 
 class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-    serverClientId:
-        '314791280440-umuq4v06vtk09dlm0ge4k0tgnfac4i01.apps.googleusercontent.com',
-  );
+  GoogleSignIn? _googleSignInInstance;
+  GoogleSignIn get _googleSignIn {
+    if (kIsWeb) {
+      _googleSignInInstance ??= GoogleSignIn(
+        scopes: ['email', 'profile'],
+        clientId:
+            '314791280440-umuq4v06vtk09dlm0ge4k0tgnfac4i01.apps.googleusercontent.com',
+      );
+    } else {
+      _googleSignInInstance ??= GoogleSignIn(
+        scopes: ['email', 'profile'],
+        serverClientId:
+            '314791280440-umuq4v06vtk09dlm0ge4k0tgnfac4i01.apps.googleusercontent.com',
+      );
+    }
+    return _googleSignInInstance!;
+  }
 
   User? get currentUser => _auth.currentUser;
 
@@ -48,6 +61,14 @@ class FirebaseAuthService {
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
+      if (kIsWeb) {
+        final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+        googleProvider.addScope('email');
+        googleProvider.addScope('profile');
+        googleProvider.setCustomParameters({'prompt': 'select_account'});
+        return await _auth.signInWithPopup(googleProvider);
+      }
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         // User canceled sign-in
@@ -107,7 +128,9 @@ class FirebaseAuthService {
 
   Future<void> signOut() async {
     try {
-      await _googleSignIn.signOut();
+      if (!kIsWeb) {
+        await _googleSignIn.signOut();
+      }
     } catch (_) {}
     await _auth.signOut();
   }

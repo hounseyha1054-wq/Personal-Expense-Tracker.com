@@ -1,0 +1,9 @@
+# Google Play Store Release Keystore Configuration
+# DO NOT commit real passwords or keystore files to public GitHub!
+# Place your 'upload-keystore.jks' in the 'frontend/android/' directory.
+
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=upload-keystore.jks
+

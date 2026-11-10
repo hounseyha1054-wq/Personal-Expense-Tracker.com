@@ -10,6 +10,7 @@ import '../../../core/widgets/custom_text_field.dart';
 import '../../../data/models/transaction_model.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../analytics/controllers/analytics_controller.dart';
+import '../../../core/utils/responsive_layout.dart';
 import '../controllers/transaction_controller.dart';
 
 class AddEditTransactionView extends StatefulWidget {
@@ -66,7 +67,8 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
     // Detect user's active/preferred currency
     String defaultCurrency = 'USD';
     if (Get.isRegistered<AuthController>()) {
-      final pref = Get.find<AuthController>().userModel.value?.preferredCurrency;
+      final pref =
+          Get.find<AuthController>().userModel.value?.preferredCurrency;
       if (pref != null && pref.isNotEmpty) {
         defaultCurrency = pref;
       }
@@ -215,11 +217,150 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
     }
   }
 
+  void _confirmDeleteForever() {
+    if (_editingTransaction == null) return;
+    final tx = _editingTransaction!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.expense.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: AppColors.expense,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'delete_forever'.tr,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'delete_warning_msg'.tr,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color:
+                    isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    tx.isIncome
+                        ? Icons.arrow_downward_rounded
+                        : Icons.arrow_upward_rounded,
+                    color: tx.isIncome ? AppColors.income : AppColors.expense,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      tx.description.isEmpty
+                          ? (tx.category?.name ?? 'Transaction')
+                          : tx.description,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    '${tx.isIncome ? '+' : '-'}${CurrencyFormatter.format(tx.amountMinor, currency: tx.currency)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: tx.isIncome ? AppColors.income : AppColors.expense,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text('cancel'.tr),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.expense,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(ctx); // Close dialog
+                    await _controller.deleteTransaction(tx.id,
+                        closeScreen: true);
+                  },
+                  child: Text(
+                    'delete_forever'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final primaryColor = _selectedType == 'expense' ? AppColors.expense : AppColors.income;
+    final primaryColor =
+        _selectedType == 'expense' ? AppColors.expense : AppColors.income;
 
     return Scaffold(
       appBar: AppBar(
@@ -228,13 +369,24 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        actions: [
+          if (_isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete_forever_rounded,
+                  color: AppColors.expense),
+              tooltip: 'delete_forever'.tr,
+              onPressed: _confirmDeleteForever,
+            ),
+        ],
       ),
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            children: [
+        child: ResponsiveContainer(
+          maxWidth: 680,
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              children: [
               // Segmented Type Selector (Expense vs Income)
               _buildTypeSelector(isDark),
 
@@ -300,17 +452,44 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
               Obx(() => CustomButton(
                     text: _isEditing
                         ? 'update_transaction'.tr
-                        : (_selectedType == 'expense' ? 'record_expense'.tr : 'record_income'.tr),
-                    icon: _isEditing ? Icons.save_rounded : Icons.check_circle_rounded,
+                        : (_selectedType == 'expense'
+                            ? 'record_expense'.tr
+                            : 'record_income'.tr),
+                    icon: _isEditing
+                        ? Icons.save_rounded
+                        : Icons.check_circle_rounded,
                     backgroundColor: primaryColor,
                     isLoading: _controller.isSubmitting.value,
                     onPressed: _submit,
                   )),
 
+              if (_isEditing) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.expense,
+                    side:
+                        const BorderSide(color: AppColors.expense, width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.delete_forever_rounded, size: 20),
+                  label: Text(
+                    'delete_forever'.tr,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  onPressed: _confirmDeleteForever,
+                ),
+              ],
+
               const SizedBox(height: 24),
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -358,7 +537,9 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                       size: 18,
                       color: _selectedType == 'expense'
                           ? Colors.white
-                          : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                          : (isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade700),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -368,7 +549,9 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                         fontSize: 15,
                         color: _selectedType == 'expense'
                             ? Colors.white
-                            : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                            : (isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade700),
                       ),
                     ),
                   ],
@@ -410,7 +593,9 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                       size: 18,
                       color: _selectedType == 'income'
                           ? Colors.white
-                          : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                          : (isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade700),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -420,7 +605,9 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                         fontSize: 15,
                         color: _selectedType == 'income'
                             ? Colors.white
-                            : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                            : (isDark
+                                ? Colors.grey.shade400
+                                : Colors.grey.shade700),
                       ),
                     ),
                   ],
@@ -436,7 +623,8 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
   Widget _buildAmountCard(Color primaryColor, bool isDark) {
     final isKhr = _selectedCurrency == 'KHR';
     final currencySymbol = isKhr ? '៛' : '\$';
-    final quickOptions = isKhr ? [5000, 10000, 20000, 50000] : [10, 20, 50, 100];
+    final quickOptions =
+        isKhr ? [5000, 10000, 20000, 50000] : [10, 20, 50, 100];
 
     return CardContainer(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
@@ -452,7 +640,9 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.1,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
               // Currency Switcher
@@ -488,7 +678,8 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
               Expanded(
                 child: TextFormField(
                   controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
@@ -509,7 +700,8 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                     if (val == null || val.trim().isEmpty) {
                       return 'Enter an amount';
                     }
-                    final parsed = double.tryParse(val.replaceAll(',', '').trim());
+                    final parsed =
+                        double.tryParse(val.replaceAll(',', '').trim());
                     if (parsed == null || parsed <= 0) {
                       return 'Enter a valid amount';
                     }
@@ -537,9 +729,12 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                 ),
                 backgroundColor: primaryColor.withValues(alpha: 0.08),
                 side: BorderSide.none,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
                 onPressed: () {
-                  final current = double.tryParse(_amountController.text.replaceAll(',', '').trim()) ?? 0.0;
+                  final current = double.tryParse(
+                          _amountController.text.replaceAll(',', '').trim()) ??
+                      0.0;
                   final updated = current + quickAdd;
                   _amountController.text = isKhr
                       ? updated.round().toString()
@@ -602,13 +797,16 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
             children: [
               Text(
                 'category'.tr,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
               Text(
                 '${filteredCategories.length} available',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
             ],
@@ -648,14 +846,19 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
                       width: 82,
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 6),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? catColor.withValues(alpha: 0.18)
                             : (isDark ? const Color(0xFF1E293B) : Colors.white),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: isSelected ? catColor : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                          color: isSelected
+                              ? catColor
+                              : (isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFE2E8F0)),
                           width: isSelected ? 2 : 1,
                         ),
                       ),
@@ -668,7 +871,8 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                               color: catColor.withValues(alpha: 0.15),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(cat.displayIcon, size: 22, color: catColor),
+                            child: Icon(cat.displayIcon,
+                                size: 22, color: catColor),
                           ),
                           const SizedBox(height: 6),
                           Text(
@@ -678,7 +882,9 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 11,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.w500,
                               color: isSelected ? catColor : null,
                             ),
                           ),
@@ -712,17 +918,20 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color:
+                    isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
               ),
             ),
             child: Row(
               children: [
-                Icon(Icons.calendar_month_rounded, size: 20, color: primaryColor),
+                Icon(Icons.calendar_month_rounded,
+                    size: 20, color: primaryColor),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     DateFormatter.formatRelativeOrDate(_selectedDate),
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                 ),
                 Text(
@@ -776,21 +985,29 @@ class _AddEditTransactionViewState extends State<AddEditTransactionView> {
               avatar: Icon(
                 _getPaymentIcon(method),
                 size: 16,
-                color: isSelected ? Colors.white : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
               ),
               label: Text(_getLocalizedPaymentMethod(method)),
               selected: isSelected,
               selectedColor: primaryColor,
-              backgroundColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+              backgroundColor:
+                  isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
               labelStyle: TextStyle(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected ? Colors.white : null,
               ),
               side: BorderSide(
-                color: isSelected ? primaryColor : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                color: isSelected
+                    ? primaryColor
+                    : (isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFE2E8F0)),
               ),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               onSelected: (selected) {
                 if (selected) {
                   setState(() {

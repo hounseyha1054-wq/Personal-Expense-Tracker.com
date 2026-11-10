@@ -128,6 +128,25 @@ class ApiService {
     await _dio.delete('${ApiConstants.transactions}/$id');
   }
 
+  Future<List<TransactionModel>> exportTransactions({
+    String? type,
+    String? currency,
+    String? startDate,
+    String? endDate,
+  }) async {
+    final response = await _dio.get(
+      '${ApiConstants.transactions}/export',
+      queryParameters: {
+        if (type != null && type.isNotEmpty) 'type': type,
+        if (currency != null && currency.isNotEmpty) 'currency': currency,
+        if (startDate != null && startDate.isNotEmpty) 'startDate': startDate,
+        if (endDate != null && endDate.isNotEmpty) 'endDate': endDate,
+      },
+    );
+    final List<dynamic> data = response.data['data'] ?? [];
+    return data.map((item) => TransactionModel.fromJson(item)).toList();
+  }
+
   // --- Categories ---
   Future<List<CategoryModel>> getCategories({String? type}) async {
     final response = await _dio.get(

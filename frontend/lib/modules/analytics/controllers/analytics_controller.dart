@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/analytics_model.dart';
 import '../../../data/repositories/analytics_repository.dart';

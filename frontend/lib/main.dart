@@ -1,4 +1,8 @@
+import 'dart:ui';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -7,6 +11,7 @@ import 'app/routes/app_routes.dart';
 import 'app/theme/app_theme.dart';
 import 'core/localization/translation_service.dart';
 import 'core/network/api_client.dart';
+import 'core/services/app_update_service.dart';
 import 'data/repositories/analytics_repository.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/budget_repository.dart';
@@ -30,7 +35,18 @@ import 'modules/dashboard/views/main_nav_view.dart';
 import 'modules/profile/views/profile_view.dart';
 import 'modules/transactions/bindings/transaction_binding.dart';
 import 'modules/transactions/views/add_edit_transaction_view.dart';
+import 'modules/transactions/views/transaction_detail_view.dart';
 import 'modules/transactions/views/transactions_view.dart';
+
+/// Mandatory top-level background message handler for Firebase Messaging.
+/// Annotated with @pragma('vm:entry-point') so it is not stripped away by the Dart compiler.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  debugPrint('[FCM Background] Message received: ${message.messageId}');
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +56,14 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Register the background message handler on native platforms (handled by Service Worker on Web)
+  if (!kIsWeb) {
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  }
+
+  // Inject the AppUpdateService for Play Store in-app updates and FCM notifications
+  await Get.putAsync<AppUpdateService>(() => AppUpdateService().init());
 
   final apiClient = ApiClient();
   final apiService = ApiService(apiClient);
@@ -62,6 +86,18 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
+class WebAppScrollBehavior extends MaterialScrollBehavior {
+  const WebAppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -70,6 +106,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'ExpenseTracker',
       debugShowCheckedModeBanner: false,
+      scrollBehavior: const WebAppScrollBehavior(),
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
@@ -137,6 +174,11 @@ class MyApp extends StatelessWidget {
         GetPage(
           name: Routes.addEditTransaction,
           page: () => const AddEditTransactionView(),
+          binding: TransactionBinding(),
+        ),
+        GetPage(
+          name: Routes.transactionDetail,
+          page: () => const TransactionDetailView(),
           binding: TransactionBinding(),
         ),
       ],

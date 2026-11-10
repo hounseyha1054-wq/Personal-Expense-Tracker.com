@@ -314,6 +314,14 @@ class AuthController extends GetxController {
 
   String _mapFirebaseAuthError(FirebaseAuthException e) {
     switch (e.code) {
+      case 'popup-closed-by-user':
+        return 'Sign-in window was closed before completing.';
+      case 'popup-blocked':
+        return 'The Google sign-in popup was blocked by your browser. Please allow popups for this site.';
+      case 'unauthorized-domain':
+        return 'This domain is not authorized in Firebase Console > Authentication > Settings > Authorized Domains.';
+      case 'account-exists-with-different-credential':
+        return 'An account already exists with this email using a different sign-in method.';
       case 'user-not-found':
         return 'No user found with this email address.';
       case 'wrong-password':

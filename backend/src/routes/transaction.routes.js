@@ -14,6 +14,7 @@ const router = express.Router();
 router.use(verifyFirebaseToken);
 
 router.get('/', listTransactionsValidator, validateRequest, transactionController.list);
+router.get('/export', transactionController.exportData);
 router.post('/', createTransactionValidator, validateRequest, transactionController.create);
 router.get('/:id', transactionIdValidator, validateRequest, transactionController.getById);
 router.put('/:id', updateTransactionValidator, validateRequest, transactionController.update);

@@ -4,6 +4,7 @@ import '../../../app/routes/app_routes.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../core/utils/responsive_layout.dart';
 import '../../../core/widgets/card_container.dart';
 import '../../../core/widgets/empty_state_view.dart';
 import '../../../core/widgets/loading_indicator.dart';
@@ -65,8 +66,10 @@ class _TransactionsViewState extends State<TransactionsView> {
           ),
         ],
       ),
-      body: Column(
-        children: [
+      body: ResponsiveContainer(
+        maxWidth: 1100,
+        child: Column(
+          children: [
           // Search Bar
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -265,7 +268,8 @@ class _TransactionsViewState extends State<TransactionsView> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   // Group transactions by date
@@ -298,6 +302,142 @@ class _TransactionsViewState extends State<TransactionsView> {
         .toList();
   }
 
+  Future<bool> _showDeleteConfirmationDialog(
+    BuildContext context,
+    TransactionModel tx,
+  ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.expense.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: AppColors.expense,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'delete_forever'.tr,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'delete_warning_msg'.tr,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color:
+                    isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    tx.isIncome
+                        ? Icons.arrow_downward_rounded
+                        : Icons.arrow_upward_rounded,
+                    color: tx.isIncome ? AppColors.income : AppColors.expense,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      tx.description.isEmpty
+                          ? (tx.category?.name ?? 'Transaction')
+                          : tx.description,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    '${tx.isIncome ? '+' : '-'}${CurrencyFormatter.format(tx.amountMinor, currency: tx.currency)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: tx.isIncome ? AppColors.income : AppColors.expense,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text('cancel'.tr),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.expense,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(
+                    'delete_forever'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return confirmed ?? false;
+  }
+
   Widget _buildTransactionCard(
     TransactionModel tx,
     TransactionController controller,
@@ -308,125 +448,255 @@ class _TransactionsViewState extends State<TransactionsView> {
     final amountColor =
         isIncome ? const Color(0xFF10B981) : const Color(0xFFEF4444);
 
-    return CardContainer(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      onTap: () {
-        Get.toNamed(Routes.transactionDetail, arguments: tx.id)?.then((_) {
-          controller.fetchTransactions();
-        });
+    return Dismissible(
+      key: Key('tx_${tx.id}'),
+      direction: DismissDirection.horizontal,
+      background: Container(
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.edit_rounded, color: Colors.white, size: 22),
+            const SizedBox(width: 8),
+            Text(
+              'edit_transaction'.tr,
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+      secondaryBackground: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.expense,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              'delete_forever'.tr,
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.delete_forever_rounded,
+                color: Colors.white, size: 22),
+          ],
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.endToStart) {
+          // Swipe left -> Delete forever
+          final confirm = await _showDeleteConfirmationDialog(context, tx);
+          if (confirm) {
+            await controller.deleteTransaction(tx.id, closeScreen: false);
+            return true;
+          }
+          return false;
+        } else if (direction == DismissDirection.startToEnd) {
+          // Swipe right -> Edit
+          Get.toNamed(Routes.addEditTransaction, arguments: tx)?.then((_) {
+            controller.fetchTransactions();
+          });
+          return false; // Don't dismiss card
+        }
+        return false;
       },
-      child: Row(
-        children: [
-          // Squircle Category Avatar
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: tx.category?.displayColor.withValues(alpha: 0.12) ??
-                  (isIncome
-                      ? const Color(0xFF10B981).withValues(alpha: 0.12)
-                      : const Color(0xFFEF4444).withValues(alpha: 0.12)),
-              borderRadius: BorderRadius.circular(14),
+      child: CardContainer(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        onTap: () {
+          Get.toNamed(Routes.transactionDetail, arguments: tx)?.then((_) {
+            controller.fetchTransactions();
+          });
+        },
+        child: Row(
+          children: [
+            // Squircle Category Avatar
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: tx.category?.displayColor.withValues(alpha: 0.12) ??
+                    (isIncome
+                        ? const Color(0xFF10B981).withValues(alpha: 0.12)
+                        : const Color(0xFFEF4444).withValues(alpha: 0.12)),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                tx.category?.displayIcon ??
+                    (isIncome
+                        ? Icons.attach_money_rounded
+                        : Icons.shopping_bag_rounded),
+                color: tx.category?.displayColor ?? amountColor,
+                size: 22,
+              ),
             ),
-            child: Icon(
-              tx.category?.displayIcon ??
-                  (isIncome
-                      ? Icons.attach_money_rounded
-                      : Icons.shopping_bag_rounded),
-              color: tx.category?.displayColor ?? amountColor,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
 
-          // Title & Category details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tx.description,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 14),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 3),
-                Row(
-                  children: [
-                    Text(
-                      tx.category?.name ?? 'General',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color:
-                            isDark ? Colors.white60 : const Color(0xFF64748B),
-                      ),
-                    ),
-                    if (tx.paymentMethod.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF334155)
-                              : const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(6),
+            // Title & Category details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tx.description.isEmpty
+                        ? (tx.category?.name ?? 'Transaction')
+                        : tx.description,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 14),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Text(
+                        tx.category?.name ?? 'General',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color:
+                              isDark ? Colors.white60 : const Color(0xFF64748B),
                         ),
-                        child: Text(
-                          tx.paymentMethod,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
+                      ),
+                      if (tx.paymentMethod.isNotEmpty) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
                             color: isDark
-                                ? Colors.white70
-                                : const Color(0xFF64748B),
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            tx.paymentMethod,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: isDark
+                                  ? Colors.white70
+                                  : const Color(0xFF64748B),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Amount & Currency Badge
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${isIncome ? '+' : '-'}${CurrencyFormatter.format(tx.amountMinor, currency: tx.currency)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: amountColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: isKhr
+                        ? const Color(0xFFEA580C).withValues(alpha: 0.12)
+                        : const Color(0xFF2563EB).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    tx.currency,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: isKhr
+                          ? const Color(0xFFEA580C)
+                          : const Color(0xFF2563EB),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
 
-          // Amount & Currency Badge
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${isIncome ? '+' : '-'}${CurrencyFormatter.format(tx.amountMinor, currency: tx.currency)}',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: amountColor,
-                ),
+            const SizedBox(width: 4),
+
+            // 3-dots popup options menu (Edit & Delete Forever)
+            PopupMenuButton<String>(
+              icon: Icon(
+                Icons.more_vert_rounded,
+                size: 20,
+                color: isDark ? Colors.white60 : const Color(0xFF94A3B8),
               ),
-              const SizedBox(height: 2),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: isKhr
-                      ? const Color(0xFFEA580C).withValues(alpha: 0.12)
-                      : const Color(0xFF2563EB).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  tx.currency,
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    color: isKhr
-                        ? const Color(0xFFEA580C)
-                        : const Color(0xFF2563EB),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              onSelected: (action) async {
+                if (action == 'edit') {
+                  Get.toNamed(Routes.addEditTransaction, arguments: tx)
+                      ?.then((_) {
+                    controller.fetchTransactions();
+                  });
+                } else if (action == 'delete') {
+                  final confirm =
+                      await _showDeleteConfirmationDialog(context, tx);
+                  if (confirm) {
+                    await controller.deleteTransaction(tx.id,
+                        closeScreen: false);
+                  }
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.edit_rounded,
+                          size: 18, color: AppColors.primary),
+                      const SizedBox(width: 10),
+                      Text('edit_transaction'.tr,
+                          style: const TextStyle(fontSize: 14)),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete_forever_rounded,
+                          size: 18, color: AppColors.expense),
+                      const SizedBox(width: 10),
+                      Text(
+                        'delete_forever'.tr,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.expense,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -581,13 +851,12 @@ class _TransactionsViewState extends State<TransactionsView> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
+                const Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
                     'Filter by Category',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 ListTile(

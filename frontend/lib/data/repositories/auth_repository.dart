@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../services/firebase_auth_service.dart';
@@ -23,10 +24,23 @@ class AuthRepository {
       password: password,
     );
     // Synchronize with Express.js MongoDB
-    return await _apiService.syncUser(
-      name: cred.user?.displayName,
-      photoURL: cred.user?.photoURL,
-    );
+    try {
+      return await _apiService.syncUser(
+        name: cred.user?.displayName,
+        photoURL: cred.user?.photoURL,
+      );
+    } catch (e) {
+      debugPrint('[AuthRepository] Backend sync failed, using Firebase profile: $e');
+      final u = cred.user;
+      return UserModel(
+        id: u?.uid,
+        firebaseUid: u?.uid ?? '',
+        name: u?.displayName ?? '',
+        email: u?.email ?? email,
+        photoURL: u?.photoURL ?? '',
+        emailVerified: u?.emailVerified ?? false,
+      );
+    }
   }
 
   Future<UserModel> register({
@@ -40,10 +54,23 @@ class AuthRepository {
       name: name,
     );
     // Synchronize with Express.js MongoDB
-    return await _apiService.syncUser(
-      name: name,
-      photoURL: cred.user?.photoURL,
-    );
+    try {
+      return await _apiService.syncUser(
+        name: name,
+        photoURL: cred.user?.photoURL,
+      );
+    } catch (e) {
+      debugPrint('[AuthRepository] Backend sync failed, using Firebase profile: $e');
+      final u = cred.user;
+      return UserModel(
+        id: u?.uid,
+        firebaseUid: u?.uid ?? '',
+        name: name,
+        email: u?.email ?? email,
+        photoURL: u?.photoURL ?? '',
+        emailVerified: u?.emailVerified ?? false,
+      );
+    }
   }
 
   Future<UserModel?> signInWithGoogle() async {
@@ -52,10 +79,23 @@ class AuthRepository {
       return null;
     }
     // Synchronize with Express.js MongoDB
-    return await _apiService.syncUser(
-      name: cred.user?.displayName,
-      photoURL: cred.user?.photoURL,
-    );
+    try {
+      return await _apiService.syncUser(
+        name: cred.user?.displayName,
+        photoURL: cred.user?.photoURL,
+      );
+    } catch (e) {
+      debugPrint('[AuthRepository] Backend sync failed, using Firebase profile: $e');
+      final u = cred.user!;
+      return UserModel(
+        id: u.uid,
+        firebaseUid: u.uid,
+        name: u.displayName ?? '',
+        email: u.email ?? '',
+        photoURL: u.photoURL ?? '',
+        emailVerified: u.emailVerified,
+      );
+    }
   }
 
   Future<void> sendPasswordReset(String email) async {

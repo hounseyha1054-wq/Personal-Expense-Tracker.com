@@ -1,15 +1,20 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/localization/translation_service.dart';
+import '../../../core/services/app_update_service.dart';
+import '../../../core/utils/responsive_layout.dart';
 import '../../../core/widgets/card_container.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../core/widgets/loading_indicator.dart';
 import '../controllers/profile_controller.dart';
+import '../widgets/export_data_modal.dart';
 
 class ProfileView extends GetView<ProfileController> {
   const ProfileView({super.key});
@@ -49,356 +54,501 @@ class ProfileView extends GetView<ProfileController> {
 
         return RefreshIndicator(
           onRefresh: () => controller.loadProfile(),
-          child: ListView(
+          child: ResponsiveContainer(
+            maxWidth: 1100,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            children: [
-              // 1. Hero Profile Header Card
-              _buildProfileHeaderCard(
-                  context, name, email, user?.photoURL, isVerified, isDark),
-
-              const SizedBox(height: 24),
-
-              // 2. Preferences Section
-              _buildSectionTitle('preferences'.tr),
-              const SizedBox(height: 8),
-              CardContainer(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Column(
-                  children: [
-                    // Currency Setting
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.monetization_on_rounded,
-                            color: AppColors.primary, size: 22),
-                      ),
-                      title: Text('default_currency'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text(
-                        currency == 'KHR'
-                            ? 'currency_khr_label'.tr
-                            : 'currency_usd_label'.tr,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          currency,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary),
-                        ),
-                      ),
-                      onTap: () => _showCurrencyPicker(context, currency),
-                    ),
-                    const Divider(height: 1, indent: 56),
-
-                    // Language Setting
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.teal.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.language_rounded,
-                            color: Colors.teal, size: 22),
-                      ),
-                      title: Text('language'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text(
-                        TranslationService.getLanguageName(
-                            TranslationService.currentLanguageCode),
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.teal.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          TranslationService.currentLanguageCode.toUpperCase(),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.teal),
-                        ),
-                      ),
-                      onTap: () => _showLanguagePicker(context),
-                    ),
-                    const Divider(height: 1, indent: 56),
-
-                    // Theme Mode Setting
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.purple.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.palette_rounded,
-                            color: Colors.purple, size: 22),
-                      ),
-                      title: Text('appearance'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text(
-                        controller.selectedTheme.value == 'dark'
-                            ? 'theme_dark'.tr
-                            : (controller.selectedTheme.value == 'light'
-                                ? 'theme_light'.tr
-                                : 'theme_system'.tr),
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () => _showThemePicker(context),
-                    ),
-                    const Divider(height: 1, indent: 56),
-
-                    // Notification Switch
-                    SwitchListTile(
-                      secondary: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.notifications_active_rounded,
-                            color: Colors.amber, size: 22),
-                      ),
-                      title: Text('budget_alerts'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text('budget_alerts_sub'.tr,
-                          style: const TextStyle(fontSize: 13)),
-                      value: controller.notificationsEnabled.value,
-                      activeThumbColor: AppColors.primary,
-                      onChanged: (val) {
-                        controller.notificationsEnabled.value = val;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // 3. Security Section
-              _buildSectionTitle('security_account'.tr),
-              const SizedBox(height: 8),
-              CardContainer(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Column(
-                  children: [
-                    // Change Password
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.lock_reset_rounded,
-                            color: Colors.blue, size: 22),
-                      ),
-                      title: Text('change_password'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text('update_security_creds'.tr,
-                          style: const TextStyle(fontSize: 13)),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () => _showChangePasswordModal(context),
-                    ),
-                    const Divider(height: 1, indent: 56),
-
-                    // Email Verification
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: isVerified
-                              ? AppColors.income.withValues(alpha: 0.12)
-                              : Colors.orange.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          isVerified
-                              ? Icons.verified_user_rounded
-                              : Icons.mark_email_unread_rounded,
-                          color: isVerified ? AppColors.income : Colors.orange,
-                          size: 22,
-                        ),
-                      ),
-                      title: Text('email_status'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text(
-                        isVerified
-                            ? 'verified_account'.tr
-                            : 'unverified_account'.tr,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isVerified ? AppColors.income : Colors.orange,
-                        ),
-                      ),
-                      trailing: isVerified
-                          ? const Icon(Icons.check_circle_rounded,
-                              color: AppColors.income)
-                          : Row(
-                              mainAxisSize: MainAxisSize.min,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 860;
+                if (isWide) {
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 32),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Left Column: Profile Card + Sign Out (40%)
+                          Expanded(
+                            flex: 4,
+                            child: Column(
                               children: [
-                                TextButton(
-                                  onPressed: () =>
-                                      controller.checkEmailVerificationStatus(),
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                                    minimumSize: Size.zero,
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                  ),
-                                  child: const Text(
-                                    'Check',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
+                                _buildProfileHeaderCard(
+                                  context,
+                                  name,
+                                  email,
+                                  user?.photoURL,
+                                  isVerified,
+                                  isDark,
                                 ),
-                                const SizedBox(width: 6),
-                                ElevatedButton(
-                                  onPressed: () =>
-                                      controller.resendVerificationEmail(),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 6),
-                                    minimumSize: Size.zero,
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  child: const Text(
-                                    'Verify',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                ),
+                                const SizedBox(height: 20),
+                                _buildSignOutButton(context),
                               ],
                             ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // 4. Data & App Info
-              _buildSectionTitle('APP & DATA'),
-              const SizedBox(height: 8),
-              CardContainer(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.teal.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.download_rounded,
-                            color: Colors.teal, size: 22),
-                      ),
-                      title: const Text('Export Data',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: const Text(
-                          'Download transaction history as CSV',
-                          style: TextStyle(fontSize: 13)),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text(
-                              'Your transaction records are being compiled for export.',
-                            ),
-                            backgroundColor: Colors.teal.shade700,
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                          ),
+                          const SizedBox(width: 28),
+                          // Right Column: Preferences, Security, App & Data (60%)
+                          Expanded(
+                            flex: 6,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildPreferencesSection(context, currency, isDark),
+                                const SizedBox(height: 20),
+                                _buildSecuritySection(context, isVerified, isDark),
+                                const SizedBox(height: 20),
+                                _buildAppDataSection(context, isDark),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    ),
-                    const Divider(height: 1, indent: 56),
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.auto_stories_rounded,
-                            color: AppColors.primary, size: 22),
+                        ],
                       ),
-                      title: Text('view_onboarding'.tr,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text('view_onboarding_sub'.tr,
-                          style: const TextStyle(fontSize: 13)),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () => Get.toNamed(Routes.onboarding),
                     ),
-                    const Divider(height: 1, indent: 56),
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(Icons.info_outline_rounded, size: 22),
-                      ),
-                      title: const Text('Version',
-                          style: TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: const Text('1.0.0 (Production Build)',
-                          style: TextStyle(fontSize: 13)),
+                  );
+                }
+
+                // Mobile 1-Column Layout
+                return ListView(
+                  children: [
+                    _buildProfileHeaderCard(
+                      context,
+                      name,
+                      email,
+                      user?.photoURL,
+                      isVerified,
+                      isDark,
                     ),
+                    const SizedBox(height: 24),
+                    _buildPreferencesSection(context, currency, isDark),
+                    const SizedBox(height: 20),
+                    _buildSecuritySection(context, isVerified, isDark),
+                    const SizedBox(height: 20),
+                    _buildAppDataSection(context, isDark),
+                    const SizedBox(height: 32),
+                    _buildSignOutButton(context),
+                    const SizedBox(height: 32),
                   ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // 5. Sign Out Button
-              OutlinedButton.icon(
-                onPressed: () => _confirmSignOut(context),
-                icon:
-                    const Icon(Icons.logout_rounded, color: AppColors.expense),
-                label: Text(
-                  'sign_out'.tr,
-                  style: const TextStyle(
-                    color: AppColors.expense,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  side: BorderSide(
-                      color: AppColors.expense.withValues(alpha: 0.5)),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
-              ),
-
-              const SizedBox(height: 32),
-            ],
+                );
+              },
+            ),
           ),
         );
       }),
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Preferences Section
+  // --------------------------------------------------------------------------
+  Widget _buildPreferencesSection(
+      BuildContext context, String currency, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('preferences'.tr),
+        const SizedBox(height: 8),
+        CardContainer(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            children: [
+              // Currency Setting
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.monetization_on_rounded,
+                      color: AppColors.primary, size: 22),
+                ),
+                title: Text('default_currency'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  currency == 'KHR'
+                      ? 'currency_khr_label'.tr
+                      : 'currency_usd_label'.tr,
+                  style: const TextStyle(fontSize: 13),
+                ),
+                trailing: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    currency,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: AppColors.primary),
+                  ),
+                ),
+                onTap: () => _showCurrencyPicker(context, currency),
+              ),
+              const Divider(height: 1, indent: 56),
+
+              // Language Setting
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.language_rounded,
+                      color: Colors.teal, size: 22),
+                ),
+                title: Text('language'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  TranslationService.getLanguageName(
+                      TranslationService.currentLanguageCode),
+                  style: const TextStyle(fontSize: 13),
+                ),
+                trailing: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    TranslationService.currentLanguageCode.toUpperCase(),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.teal),
+                  ),
+                ),
+                onTap: () => _showLanguagePicker(context),
+              ),
+              const Divider(height: 1, indent: 56),
+
+              // Theme Mode Setting
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.palette_rounded,
+                      color: Colors.purple, size: 22),
+                ),
+                title: Text('appearance'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  controller.selectedTheme.value == 'dark'
+                      ? 'theme_dark'.tr
+                      : (controller.selectedTheme.value == 'light'
+                          ? 'theme_light'.tr
+                          : 'theme_system'.tr),
+                  style: const TextStyle(fontSize: 13),
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _showThemePicker(context),
+              ),
+              const Divider(height: 1, indent: 56),
+
+              // Notification Switch
+              SwitchListTile(
+                secondary: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.notifications_active_rounded,
+                      color: Colors.amber, size: 22),
+                ),
+                title: Text('budget_alerts'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text('budget_alerts_sub'.tr,
+                    style: const TextStyle(fontSize: 13)),
+                value: controller.notificationsEnabled.value,
+                activeThumbColor: AppColors.primary,
+                onChanged: (val) {
+                  controller.notificationsEnabled.value = val;
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Security Section
+  // --------------------------------------------------------------------------
+  Widget _buildSecuritySection(
+      BuildContext context, bool isVerified, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('security_account'.tr),
+        const SizedBox(height: 8),
+        CardContainer(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            children: [
+              // Change Password
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.lock_reset_rounded,
+                      color: Colors.blue, size: 22),
+                ),
+                title: Text('change_password'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text('update_security_creds'.tr,
+                    style: const TextStyle(fontSize: 13)),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _showChangePasswordModal(context),
+              ),
+              const Divider(height: 1, indent: 56),
+
+              // Email Verification
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isVerified
+                        ? AppColors.income.withValues(alpha: 0.12)
+                        : Colors.orange.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    isVerified
+                        ? Icons.verified_user_rounded
+                        : Icons.mark_email_unread_rounded,
+                    color: isVerified ? AppColors.income : Colors.orange,
+                    size: 22,
+                  ),
+                ),
+                title: Text('email_status'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  isVerified
+                      ? 'verified_account'.tr
+                      : 'unverified_account'.tr,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isVerified ? AppColors.income : Colors.orange,
+                  ),
+                ),
+                trailing: isVerified
+                    ? const Icon(Icons.check_circle_rounded,
+                        color: AppColors.income)
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            onPressed: () =>
+                                controller.checkEmailVerificationStatus(),
+                            style: TextButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text(
+                              'Check',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          ElevatedButton(
+                            onPressed: () =>
+                                controller.resendVerificationEmail(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Verify',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // App & Data Section
+  // --------------------------------------------------------------------------
+  Widget _buildAppDataSection(BuildContext context, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('APP & DATA'),
+        const SizedBox(height: 8),
+        CardContainer(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            children: [
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.download_rounded,
+                      color: Colors.teal, size: 22),
+                ),
+                title: Text('export_data'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text('export_subtitle'.tr,
+                    style: const TextStyle(fontSize: 13)),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => ExportDataModal.show(context),
+              ),
+              const Divider(height: 1, indent: 56),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.auto_stories_rounded,
+                      color: AppColors.primary, size: 22),
+                ),
+                title: Text('view_onboarding'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text('view_onboarding_sub'.tr,
+                    style: const TextStyle(fontSize: 13)),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Get.toNamed(Routes.onboarding),
+              ),
+              if (Get.isRegistered<AppUpdateService>()) ...[
+                const Divider(height: 1, indent: 56),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.notifications_active_rounded,
+                        color: Colors.amber, size: 22),
+                  ),
+                  title: const Text('FCM Device Token',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Obx(() {
+                    final token =
+                        Get.find<AppUpdateService>().fcmToken.value;
+                    return Text(
+                      token.isNotEmpty
+                          ? '${token.substring(0, token.length > 22 ? 22 : token.length)}...'
+                          : 'Tap to fetch token',
+                      style: const TextStyle(fontSize: 12),
+                    );
+                  }),
+                  trailing: ElevatedButton.icon(
+                    onPressed: () async {
+                      final service = Get.find<AppUpdateService>();
+                      var token = service.fcmToken.value;
+                      if (token.isEmpty) {
+                        token =
+                            await FirebaseMessaging.instance.getToken() ??
+                                '';
+                        service.fcmToken.value = token;
+                      }
+                      if (token.isNotEmpty) {
+                        await Clipboard.setData(
+                            ClipboardData(text: token));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('FCM Token copied to clipboard!'),
+                              backgroundColor: AppColors.income,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.copy_rounded, size: 14),
+                    label: const Text('Copy',
+                        style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+              ],
+              const Divider(height: 1, indent: 56),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.info_outline_rounded, size: 22),
+                ),
+                title: const Text('Version',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: const Text('1.0.0 (Production Build)',
+                    style: TextStyle(fontSize: 13)),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // Sign Out Button
+  // --------------------------------------------------------------------------
+  Widget _buildSignOutButton(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: () => _confirmSignOut(context),
+      icon: const Icon(Icons.logout_rounded, color: AppColors.expense),
+      label: Text(
+        'sign_out'.tr,
+        style: const TextStyle(
+          color: AppColors.expense,
+          fontWeight: FontWeight.bold,
+          fontSize: 15,
+        ),
+      ),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 50),
+        side:
+            BorderSide(color: AppColors.expense.withValues(alpha: 0.5)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14)),
+      ),
     );
   }
 

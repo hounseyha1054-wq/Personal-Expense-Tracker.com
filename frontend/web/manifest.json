@@ -1,12 +1,12 @@
 {
-    "name": "personal_expense_tracker",
-    "short_name": "personal_expense_tracker",
+    "name": "Personal Expense Tracker",
+    "short_name": "ExpenseTracker",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#0F172A",
+    "theme_color": "#4F46E5",
+    "description": "Personal Expense Tracker - Track expenses, manage budgets, and analyze spending habits.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

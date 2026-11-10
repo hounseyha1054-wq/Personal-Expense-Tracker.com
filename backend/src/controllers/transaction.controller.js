@@ -18,6 +18,22 @@ class TransactionController {
   }
 
   /**
+   * GET /api/v1/transactions/export
+   */
+  async exportData(req, res, next) {
+    try {
+      const transactions = await transactionService.exportTransactions(req.user.uid, req.query);
+      return res.status(200).json({
+        success: true,
+        count: transactions.length,
+        data: transactions,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * POST /api/v1/transactions
    */
   async create(req, res, next) {

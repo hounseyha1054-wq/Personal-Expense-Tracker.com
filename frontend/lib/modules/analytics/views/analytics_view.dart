@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../app/routes/app_routes.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/utils/responsive_layout.dart';
 import '../../../core/widgets/card_container.dart';
 import '../../../core/widgets/loading_indicator.dart';
 import '../../../data/models/analytics_model.dart';
@@ -104,34 +105,70 @@ class AnalyticsView extends GetView<AnalyticsController> {
 
         return RefreshIndicator(
           onRefresh: () => controller.loadData(),
-          child: ListView(
+          child: ResponsiveContainer(
+            maxWidth: 1280,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            children: [
-              // 1. ABA Year Switcher & Quick Nav
-              _buildYearSwitcher(isDark, context),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 900;
+                if (isWide) {
+                  return SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // 1. Year Switcher
+                        _buildYearSwitcher(isDark, context),
+                        const SizedBox(height: 12),
 
-              const SizedBox(height: 12),
+                        // 2. 12-Month Selector Bar
+                        _buildMonthSelectorBar(isDark),
+                        const SizedBox(height: 16),
 
-              // 2. Horizontal Scrollable 12-Month Selector Bar
-              _buildMonthSelectorBar(isDark),
+                        // 3. Cash Flow Overview Card
+                        _buildAbaCashFlowCard(currency, isDark),
+                        const SizedBox(height: 24),
 
-              const SizedBox(height: 16),
+                        // 4. Two-Column Charts Row (Bar Trends & Donut Breakdown)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 6,
+                              child: _build12MonthBarChartSection(
+                                  monthlyStats, currency, isDark),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              flex: 5,
+                              child: _buildCategoryBreakdownSection(
+                                  breakdown, currency, isDark),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  );
+                }
 
-              // 3. ABA Overview Cash Flow & Net Balance Card
-              _buildAbaCashFlowCard(currency, isDark),
-
-              const SizedBox(height: 20),
-
-              // 4. All 12 Months Trend Bar Chart (Tap to select month)
-              _build12MonthBarChartSection(monthlyStats, currency, isDark),
-
-              const SizedBox(height: 24),
-
-              // 5. Category Breakdown (Donut + Ranked List)
-              _buildCategoryBreakdownSection(breakdown, currency, isDark),
-
-              const SizedBox(height: 32),
-            ],
+                // Mobile 1-Column Layout
+                return ListView(
+                  children: [
+                    _buildYearSwitcher(isDark, context),
+                    const SizedBox(height: 12),
+                    _buildMonthSelectorBar(isDark),
+                    const SizedBox(height: 16),
+                    _buildAbaCashFlowCard(currency, isDark),
+                    const SizedBox(height: 20),
+                    _build12MonthBarChartSection(monthlyStats, currency, isDark),
+                    const SizedBox(height: 24),
+                    _buildCategoryBreakdownSection(breakdown, currency, isDark),
+                    const SizedBox(height: 32),
+                  ],
+                );
+              },
+            ),
           ),
         );
       }),
@@ -1275,7 +1312,6 @@ class AnalyticsView extends GetView<AnalyticsController> {
   // --- Modal for Month & Year Selection (ABA Grid Style) ---
   void _showMonthYearPickerModal(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final currentYear = controller.selectedYear.value;
     final currentMonth = controller.selectedMonth.value;
 
     showModalBottomSheet(

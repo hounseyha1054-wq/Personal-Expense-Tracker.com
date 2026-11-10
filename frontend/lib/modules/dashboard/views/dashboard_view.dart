@@ -5,12 +5,14 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../core/utils/responsive_layout.dart';
 import '../../../core/widgets/card_container.dart';
 import '../../../core/widgets/loading_indicator.dart';
 import '../../../data/models/budget_model.dart';
 import '../../../data/models/transaction_model.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../profile/controllers/profile_controller.dart';
+import '../../transactions/controllers/transaction_controller.dart';
 import '../controllers/dashboard_controller.dart';
 
 class DashboardView extends StatelessWidget {
@@ -35,10 +37,6 @@ class DashboardView extends StatelessWidget {
               final profileUser = Get.isRegistered<ProfileController>()
                   ? Get.find<ProfileController>().profile.value
                   : null;
-              final user = (profileUser != null && profileUser.name.isNotEmpty)
-                  ? profileUser
-                  : authController.userModel.value;
-
               final String rawPhoto = (profileUser?.photoURL.isNotEmpty == true)
                   ? profileUser!.photoURL
                   : (authController.userModel.value?.photoURL.isNotEmpty == true
@@ -55,8 +53,10 @@ class DashboardView extends StatelessWidget {
 
               final initial = displayName.isNotEmpty
                   ? displayName[0].toUpperCase()
-                  : (authController.firebaseUser.value?.email?.isNotEmpty == true
-                      ? authController.firebaseUser.value!.email![0].toUpperCase()
+                  : (authController.firebaseUser.value?.email?.isNotEmpty ==
+                          true
+                      ? authController.firebaseUser.value!.email![0]
+                          .toUpperCase()
                       : 'U');
 
               return GestureDetector(
@@ -77,9 +77,8 @@ class DashboardView extends StatelessWidget {
                       child: CircleAvatar(
                         radius: 20,
                         backgroundColor: AppColors.primaryLight,
-                        backgroundImage: photo.isNotEmpty
-                            ? NetworkImage(photo)
-                            : null,
+                        backgroundImage:
+                            photo.isNotEmpty ? NetworkImage(photo) : null,
                         child: photo.isEmpty
                             ? Text(
                                 initial,
@@ -124,7 +123,8 @@ class DashboardView extends StatelessWidget {
                         : null;
                     final name = (profileUser?.name.isNotEmpty == true)
                         ? profileUser!.name
-                        : (authController.userModel.value?.name.isNotEmpty == true
+                        : (authController.userModel.value?.name.isNotEmpty ==
+                                true
                             ? authController.userModel.value!.name
                             : (authController.firebaseUser.value?.displayName ??
                                 'User'));
@@ -191,48 +191,120 @@ class DashboardView extends StatelessWidget {
 
         return RefreshIndicator(
           onRefresh: controller.refreshDashboard,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
+          child: ResponsiveContainer(
+            maxWidth: 1300,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ============================================================
-                // 1. ULTRA-REALISTIC DIGITAL WALLET / BANK CARD
-                // ============================================================
-                _buildDigitalWalletCard(
-                  summary: summary,
-                  currency: currency,
-                  isHidden: isHidden,
-                  controller: controller,
-                  isDark: isDark,
-                ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 900;
+                if (isWide) {
+                  return _buildWebDashboardGrid(
+                    context,
+                    controller,
+                    summary,
+                    currency,
+                    isHidden,
+                    isDark,
+                  );
+                }
+                return _buildMobileDashboardStack(
+                  context,
+                  controller,
+                  summary,
+                  currency,
+                  isHidden,
+                  isDark,
+                );
+              },
+            ),
+          ),
+        );
+      }),
+    );
+  }
 
-                const SizedBox(height: 18),
+  /// -------------------------------------------------------------------------
+  /// Web & Desktop 2-Column Responsive Dashboard Grid
+  /// -------------------------------------------------------------------------
+  Widget _buildWebDashboardGrid(
+    BuildContext context,
+    DashboardController controller,
+    dynamic summary,
+    String currency,
+    bool isHidden,
+    bool isDark,
+  ) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8, bottom: 24),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left Column: Wallet Card + Quick Actions + Monthly Budget (58% width)
+            Expanded(
+              flex: 6,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildDigitalWalletCard(
+                    summary: summary,
+                    currency: currency,
+                    isHidden: isHidden,
+                    controller: controller,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 18),
+                  _buildQuickActionsRow(currency, controller, isDark),
+                  const SizedBox(height: 24),
+                  if (controller.budgetSummary.value != null &&
+                      controller.budgetSummary.value!.budgets.isNotEmpty) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'monthly_budget'.tr,
+                          style: const TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.bold),
+                        ),
+                        TextButton(
+                          onPressed: () => _showBudgetOverviewSheet(
+                              context, controller, currency, isDark),
+                          child: Text(
+                            'view_all'.tr,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    _buildBudgetProgressCard(
+                        controller.budgetSummary.value!, currency, isDark),
+                  ],
+                ],
+              ),
+            ),
 
-                // ============================================================
-                // 2. COMMERCIAL 4-ACTION QUICK BUTTONS ROW
-                // ============================================================
-                _buildQuickActionsRow(currency, controller, isDark),
+            const SizedBox(width: 24),
 
-                const SizedBox(height: 20),
-
-                // ============================================================
-                // 3. MONTHLY BUDGET OVERVIEW CARD
-                // ============================================================
-                if (controller.budgetSummary.value != null &&
-                    controller.budgetSummary.value!.budgets.isNotEmpty) ...[
+            // Right Column: Recent Transactions Activity (42% width)
+            Expanded(
+              flex: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'monthly_budget'.tr,
+                        'recent_transactions'.tr,
                         style: const TextStyle(
                             fontSize: 17, fontWeight: FontWeight.bold),
                       ),
                       TextButton(
-                        onPressed: () => _showBudgetOverviewSheet(
-                            context, controller, currency, isDark),
+                        onPressed: () {
+                          controller.changeNavIndex(1); // Jump to transactions tab
+                        },
                         child: Text(
                           'view_all'.tr,
                           style: const TextStyle(fontWeight: FontWeight.w600),
@@ -241,49 +313,110 @@ class DashboardView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  _buildBudgetProgressCard(
-                      controller.budgetSummary.value!, currency, isDark),
-                  const SizedBox(height: 20),
+                  if (summary?.recentTransactions == null ||
+                      summary!.recentTransactions.isEmpty)
+                    _buildEmptyState(isDark)
+                  else
+                    _buildGroupedTransactions(
+                        summary.recentTransactions, controller, isDark),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                // ============================================================
-                // 4. RECENT TRANSACTIONS (Grouped by Date)
-                // ============================================================
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'recent_transactions'.tr,
-                      style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.bold),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        controller
-                            .changeNavIndex(1); // Jump to transactions tab
-                      },
-                      child: Text(
-                        'view_all'.tr,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
+  /// -------------------------------------------------------------------------
+  /// Mobile 1-Column Vertical Dashboard Stack
+  /// -------------------------------------------------------------------------
+  Widget _buildMobileDashboardStack(
+    BuildContext context,
+    DashboardController controller,
+    dynamic summary,
+    String currency,
+    bool isHidden,
+    bool isDark,
+  ) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 1. Digital Wallet Card
+          _buildDigitalWalletCard(
+            summary: summary,
+            currency: currency,
+            isHidden: isHidden,
+            controller: controller,
+            isDark: isDark,
+          ),
+          const SizedBox(height: 18),
+
+          // 2. Quick Actions Row
+          _buildQuickActionsRow(currency, controller, isDark),
+          const SizedBox(height: 20),
+
+          // 3. Monthly Budget Overview
+          if (controller.budgetSummary.value != null &&
+              controller.budgetSummary.value!.budgets.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'monthly_budget'.tr,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 4),
-
-                if (summary?.recentTransactions == null ||
-                    summary!.recentTransactions.isEmpty)
-                  _buildEmptyState(isDark)
-                else
-                  _buildGroupedTransactions(
-                      summary.recentTransactions, controller, isDark),
-
-                const SizedBox(height: 28),
+                TextButton(
+                  onPressed: () => _showBudgetOverviewSheet(
+                      context, controller, currency, isDark),
+                  child: Text(
+                    'view_all'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
               ],
             ),
+            const SizedBox(height: 4),
+            _buildBudgetProgressCard(
+                controller.budgetSummary.value!, currency, isDark),
+            const SizedBox(height: 20),
+          ],
+
+          // 4. Recent Transactions
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'recent_transactions'.tr,
+                style: const TextStyle(
+                    fontSize: 17, fontWeight: FontWeight.bold),
+              ),
+              TextButton(
+                onPressed: () {
+                  controller.changeNavIndex(1); // Jump to transactions tab
+                },
+                child: Text(
+                  'view_all'.tr,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
-        );
-      }),
+          const SizedBox(height: 4),
+
+          if (summary?.recentTransactions == null ||
+              summary!.recentTransactions.isEmpty)
+            _buildEmptyState(isDark)
+          else
+            _buildGroupedTransactions(
+                summary.recentTransactions, controller, isDark),
+
+          const SizedBox(height: 28),
+        ],
+      ),
     );
   }
 
@@ -894,6 +1027,142 @@ class DashboardView extends StatelessWidget {
     );
   }
 
+  Future<bool> _showDeleteConfirmationDialog(
+    BuildContext context,
+    TransactionModel tx,
+  ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.expense.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: AppColors.expense,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'delete_forever'.tr,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'delete_warning_msg'.tr,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.white70 : const Color(0xFF64748B),
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color:
+                    isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    tx.isIncome
+                        ? Icons.arrow_downward_rounded
+                        : Icons.arrow_upward_rounded,
+                    color: tx.isIncome ? AppColors.income : AppColors.expense,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      tx.description.isEmpty
+                          ? (tx.category?.name ?? 'Transaction')
+                          : tx.description,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    '${tx.isIncome ? '+' : '-'}${CurrencyFormatter.format(tx.amountMinor, currency: tx.currency)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: tx.isIncome ? AppColors.income : AppColors.expense,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text('cancel'.tr),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.expense,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(
+                    'delete_forever'.tr,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return confirmed ?? false;
+  }
+
   Widget _buildTransactionCard(
     TransactionModel tx,
     DashboardController controller,
@@ -908,7 +1177,7 @@ class DashboardView extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       onTap: () {
-        Get.toNamed(Routes.transactionDetail, arguments: tx.id)?.then((_) {
+        Get.toNamed(Routes.transactionDetail, arguments: tx)?.then((_) {
           controller.refreshDashboard();
         });
       },
@@ -942,7 +1211,9 @@ class DashboardView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  tx.description,
+                  tx.description.isEmpty
+                      ? (tx.category?.name ?? 'Transaction')
+                      : tx.description,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -1020,6 +1291,72 @@ class DashboardView extends StatelessWidget {
                         ? const Color(0xFFEA580C)
                         : const Color(0xFF2563EB),
                   ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(width: 4),
+
+          // 3-dots popup options menu (Edit & Delete Forever)
+          PopupMenuButton<String>(
+            icon: Icon(
+              Icons.more_vert_rounded,
+              size: 20,
+              color: isDark ? Colors.white60 : const Color(0xFF94A3B8),
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: isDark ? const Color(0xFF1E293B) : Colors.white,
+            onSelected: (action) async {
+              if (action == 'edit') {
+                Get.toNamed(Routes.addEditTransaction, arguments: tx)
+                    ?.then((_) {
+                  controller.refreshDashboard();
+                });
+              } else if (action == 'delete') {
+                final confirm =
+                    await _showDeleteConfirmationDialog(Get.context!, tx);
+                if (confirm) {
+                  final txCtrl = Get.isRegistered<TransactionController>()
+                      ? Get.find<TransactionController>()
+                      : Get.put(TransactionController());
+                  await txCtrl.deleteTransaction(tx.id, closeScreen: false);
+                  controller.refreshDashboard();
+                }
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    const Icon(Icons.edit_rounded,
+                        size: 18, color: AppColors.primary),
+                    const SizedBox(width: 10),
+                    Text('edit_transaction'.tr,
+                        style: const TextStyle(fontSize: 14)),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    const Icon(Icons.delete_forever_rounded,
+                        size: 18, color: AppColors.expense),
+                    const SizedBox(width: 10),
+                    Text(
+                      'delete_forever'.tr,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.expense,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

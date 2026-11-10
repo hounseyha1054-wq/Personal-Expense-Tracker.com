@@ -1,30 +1,18 @@
-import 'package:flutter/foundation.dart';
-
 class ApiConstants {
   // Allow overriding at build/run time via:
-  // flutter run --dart-define=API_BASE_URL=http://192.168.1.100:5000/api/v1
+  // flutter run --dart-define=API_BASE_URL=http://localhost:5000/api/v1
   static const String _definedBaseUrl = String.fromEnvironment('API_BASE_URL');
+
+  /// Production Render Backend URL
+  static const String productionBaseUrl =
+      'https://personal-expense-tracker-com-1.onrender.com/api/v1';
 
   static String get baseUrl {
     if (_definedBaseUrl.isNotEmpty) {
       return _definedBaseUrl;
     }
 
-    if (kIsWeb) {
-      return 'http://localhost:5000/api/v1';
-    }
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-        // Android Emulator loops back to host via 10.0.2.2
-        return 'http://10.0.2.2:5000/api/v1';
-      case TargetPlatform.iOS:
-      case TargetPlatform.windows:
-      case TargetPlatform.macOS:
-      case TargetPlatform.linux:
-      default:
-        return 'http://localhost:5000/api/v1';
-    }
+    return productionBaseUrl;
   }
 
   static String get serverBaseUrl => baseUrl.replaceAll('/api/v1', '');

@@ -84,6 +84,40 @@ class TransactionService {
     return transaction;
   }
 
+  async exportTransactions(firebaseUid, query = {}) {
+    const { type, currency, startDate, endDate } = query;
+    const filter = { firebaseUid };
+
+    if (type && (type === 'income' || type === 'expense')) {
+      filter.type = type;
+    }
+
+    if (currency) {
+      filter.currency = currency;
+    }
+
+    if (startDate || endDate) {
+      filter.transactionDate = {};
+      if (startDate) {
+        filter.transactionDate.$gte = new Date(startDate);
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        if (typeof endDate === 'string' && endDate.length <= 10) {
+          end.setHours(23, 59, 59, 999);
+        }
+        filter.transactionDate.$lte = end;
+      }
+    }
+
+    const transactions = await Transaction.find(filter)
+      .populate('categoryId', 'name icon color type')
+      .sort({ transactionDate: -1 })
+      .lean();
+
+    return transactions;
+  }
+
   async createTransaction(firebaseUid, data) {
     // Verify that category exists and belongs to user
     const category = await Category.findOne({
