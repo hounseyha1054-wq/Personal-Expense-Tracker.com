@@ -146,13 +146,20 @@ class AuthController extends GetxController {
         colorText: Colors.white,
       );
     } catch (e) {
-      errorMessage.value = e.toString();
+      final errStr = e.toString();
+      if (errStr.contains('10') || errStr.contains('ApiException')) {
+        errorMessage.value =
+            'Google Sign-In configuration error (Code 10). Please add the SHA-1 fingerprint to Firebase Console for package com.seyha.personal.';
+      } else {
+        errorMessage.value = errStr;
+      }
       Get.snackbar(
-        'Error',
+        'Google Sign-In',
         errorMessage.value,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.shade600,
         colorText: Colors.white,
+        duration: const Duration(seconds: 5),
       );
     } finally {
       isLoading.value = false;
@@ -186,13 +193,20 @@ class AuthController extends GetxController {
         colorText: Colors.white,
       );
     } catch (e) {
-      errorMessage.value = e.toString();
+      final errStr = e.toString();
+      if (errStr.contains('10') || errStr.contains('ApiException')) {
+        errorMessage.value =
+            'Google Sign-In configuration error (Code 10). Please add the SHA-1 fingerprint to Firebase Console for package com.seyha.personal.';
+      } else {
+        errorMessage.value = errStr;
+      }
       Get.snackbar(
-        'Error',
+        'Google Sign-In',
         errorMessage.value,
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red.shade600,
         colorText: Colors.white,
+        duration: const Duration(seconds: 5),
       );
     } finally {
       isLoading.value = false;

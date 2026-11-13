@@ -1,9 +1,19 @@
-const { Category } = require('../models/Category');
+const { Category, DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES } = require('../models/Category');
 const Transaction = require('../models/Transaction');
 const Budget = require('../models/Budget');
 
 class CategoryService {
   async listCategories(firebaseUid, type) {
+    // If user has no categories in database, automatically seed defaults
+    const count = await Category.countDocuments({ firebaseUid });
+    if (count === 0) {
+      const categoriesToInsert = [
+        ...DEFAULT_EXPENSE_CATEGORIES.map((c) => ({ ...c, firebaseUid })),
+        ...DEFAULT_INCOME_CATEGORIES.map((c) => ({ ...c, firebaseUid })),
+      ];
+      await Category.insertMany(categoriesToInsert, { ordered: false }).catch(() => {});
+    }
+
     const filter = { firebaseUid };
     if (type) {
       filter.type = type;
